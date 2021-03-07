@@ -1,4 +1,4 @@
-# Tetsris_Battle_Game 
+# Tetris_Battle_Game 
 #### Toon Buggenhout & Rik Peeters
 
 ### Beschrijving
