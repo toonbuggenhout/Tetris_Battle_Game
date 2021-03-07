@@ -11,5 +11,5 @@ worden. De twee controllers voor de spelers zijn draadloos verbonden aan 
 de console waar de game op draait. 
 
 ### Schema
-![simpel_schema](/Opmaak/Schema/)
+![simpel_schema](/Opmaak/Schema/schema_projectvorstel.PNG)
 
