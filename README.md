@@ -1,2 +1,4 @@
 # Tetsris_Battle_Game 
-narutoooo
+##Toon Buggenhout & Rik Peeters
+
+narutoooooo
