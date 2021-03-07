@@ -1,0 +1,1607 @@
+#include <iostream>
+//#include <time.h>
+#include <ctime>
+#include <stdio.h>
+#include <string>
+//#include <iomanip>
+//#include <array>
+#include <windows.h>
+#include <conio.h>
+#include <chrono>
+//#include <thread>
+
+using namespace std;
+
+//sleep function
+void sleep(float seconds) {
+	clock_t startClock = clock();
+	float secondsAhead = seconds * CLOCKS_PER_SEC;
+	// do nothing until the elapsed time has passed.
+	while (clock() < startClock + secondsAhead);
+	return;
+}
+
+//set stack valeu all to 0
+void clearstack(int stack[10][20])
+{
+	for (int i = 0; i < 10; i++)
+	{
+		for (int p = 0; p < 20; p++)
+		{
+			stack[i][p] = 0;
+		}
+	}
+}
+
+//set nextblock stack all to 0
+void clearnextstack(int stack[6][4])
+{
+	for (int i = 0; i < 6; i++)
+	{
+		for (int p = 0; p < 4; p++)
+		{
+			stack[i][p] = 0;
+		}
+	}
+}
+
+//set block valeu all to 0
+void clearblock(int stack[4][2])
+{
+	for (int i = 0; i < 2; i++)
+	{
+		for (int p = 0; p < 4; p++)
+		{
+			stack[p][i] = 0;
+		}
+	}
+}
+
+//set line valeu all to 0
+void clearline(int line[20])
+{
+	for (int i = 0; i < 20; i++)
+	{
+		line[i] = 0;
+	}
+}
+
+//set cursor to x0 y0
+void setcurs()
+{
+	COORD coord = { 0, 0 };
+	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+}
+
+//set cursor to given X and Y
+void gotoxy(int x, int y) {
+	COORD pos = { x, y };
+	HANDLE output = GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(output, pos);
+}
+
+//toggle cursor
+void ShowConsoleCursor(bool showFlag)
+{
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_CURSOR_INFO     cursorInfo;
+
+	GetConsoleCursorInfo(out, &cursorInfo);
+	cursorInfo.bVisible = showFlag; // set the cursor visibility
+	SetConsoleCursorInfo(out, &cursorInfo);
+}
+
+//read input
+int readchar()
+{
+	int c = 0;
+
+
+	if (_kbhit())
+	{
+		c = _getch();
+	}
+	// w119 d100 a97 c115 q113 e101 space32 x120
+	//to a1 d2 w3 s4 q5 e6 7space 8x
+
+	switch (c) {
+	case 97:
+		c = 1; // left
+		break;
+
+	case 100:
+		c = 2; // right
+		break;
+
+	case 119:
+		c = 3; // up
+		break;
+
+	case 115:
+		c = 4; // down
+		break;
+
+	case 113:
+		c = 5; // left turn
+		break;
+
+	case 101:
+		c = 6; // richt turn
+		break;
+
+	case 32:
+		c = 7; //space
+		break;
+
+	case 120:
+		c = 8; // hold (x)
+		break;
+
+	default:
+		c = 0; //static
+		break;
+	}
+
+	return c;
+}
+
+
+//print menu
+void printmenu(int selector) {
+	setcurs();					//set cursor to 0x0y
+
+	cout << "\n\n\n   ";
+	cout << "Welcome to my tetris, select out of folowing game-modes:\n\n   ";
+	cout << "\n   Single-player:  ";
+	if (selector == 0) {
+		cout << (char)254u;
+	}else cout << " ";
+	cout << "\n   Multi-player:   ";
+	if (selector == 1) {
+		cout << (char)254u;
+	}else cout << " ";
+	cout << "\n   exit:           ";
+	if (selector == 2) {
+		cout << (char)254u;
+	}else cout << " ";
+	
+}
+
+//edit choice
+int editselector(int c, int selector, int selecorwith) { //WIP
+	//a1 d2 w3 s4 q5 e6 7space 8x
+
+	//alter selector
+	if (c == 3) {	
+		selector--;
+	}
+	if (c == 4) {
+		selector++;
+	}
+
+	//control selector
+	if (selector < 0 || selector > selecorwith) {
+		if (c == 3) {
+			selector++;
+		}
+		if (c == 4) {
+			selector--;
+		}
+	}
+
+	return selector;
+}
+
+//print the playfield
+void printstack(int stack[10][20])
+{
+
+	setcurs();
+
+
+	cout << "\n\n\n   ";
+	for (int i = 0; i < 12; i++)
+	{
+		cout << (char)254u;
+	}
+	cout << "\n   " << (char)254u;
+
+	for (int p = 0; p < 20; p++)
+	{
+		for (int i = 0; i < 10; i++)
+		{
+			switch (stack[i][p])
+			{
+			case 0:
+				cout << " ";
+				break;
+			case 1:
+				cout << (char)254u;
+				break;
+			case 2:
+				cout << "h";
+				break;
+			}
+			
+		}
+		cout << (char)254u << "\n   " << (char)254u;
+	}
+	for (int i = 0; i < 11; i++)
+	{
+		cout << (char)254u;
+	}
+}
+
+//print next block
+void printnext(int nextblock) {
+
+	int block[4][2];
+	int nextstack[6][4];
+
+	//clear the nextstack
+	clearnextstack(nextstack);
+
+	//select the correct block
+	switch (nextblock)
+	{
+		// T block #1
+	case 1:
+		block[0][0] = 2;
+		block[0][1] = 1;
+
+		block[1][0] = 1;
+		block[1][1] = 2;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// I block #2
+	case 2:
+		block[0][0] = 1;
+		block[0][1] = 2;
+
+		block[1][0] = 2;
+		block[1][1] = 2;
+
+		block[2][0] = 3;
+		block[2][1] = 2;
+
+		block[3][0] = 4;
+		block[3][1] = 2;
+		break;
+
+		// O block #3
+	case 3:
+		block[0][0] = 2;
+		block[0][1] = 1;
+
+		block[1][0] = 3;
+		block[1][1] = 1;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// J block #4
+	case 4:
+		block[0][0] = 1;
+		block[0][1] = 1;
+
+		block[1][0] = 1;
+		block[1][1] = 2;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// L block #5
+	case 5:
+		block[0][0] = 3;
+		block[0][1] = 1;
+
+		block[1][0] = 1;
+		block[1][1] = 2;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// Z block #6
+	case 6:
+		block[0][0] = 1;
+		block[0][1] = 1;
+
+		block[1][0] = 2;
+		block[1][1] = 1;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// S block #7
+	case 7:
+		block[0][0] = 2;
+		block[0][1] = 1;
+
+		block[1][0] = 3;
+		block[1][1] = 1;
+
+		block[2][0] = 1;
+		block[2][1] = 2;
+
+		block[3][0] = 2;
+		block[3][1] = 2;
+		break;
+	}	  //kijk welke block
+
+	//set block in nextstack
+	for (int i = 0; i < 4; i++) {
+		nextstack[block[i][0]][block[i][1]] = 1;		//add new block to given position
+	}
+
+	//print the nextstack
+	gotoxy(18, 4);
+	cout << "______";
+
+	for (int j = 0; j < 3; j++) {
+		gotoxy(17, 5 + j);
+		cout << "|";
+		for (int i = 0; i < 6; i++) {
+			if (nextstack[i][j] == 1)
+			{
+				cout << (char)254u;
+			}
+			else
+			{
+				cout << " ";
+			}
+		}
+		cout << "|";
+	}
+	gotoxy(17, 8);
+	cout << "|______|";
+}
+
+//gameover
+void gameoverf(int score) {
+
+	setcurs();
+
+
+	cout << "\n  " << "   $$$$$$\\  $$$$$$\\ $$$$$$\\$$$$\\  $$$$$$\\         $$$$$$\\$$\\    $$\\ $$$$$$\\  $$$$$$\\  ";
+	cout << "\n  " << "  $$  __$$\\ \\____$$\\$$  _$$  _$$\\$$  __$$\\       $$  __$$\\$$\\ \\ $$  $$  __$$\\$$  __$$\\ ";
+	cout << "\n  " << "  $$ /  $$ |$$$$$$$ $$ / $$ / $$ $$$$$$$$ |      $$ /  $$ \\$$\\$$  /$$$$$$$$ $$ |  \\__|";
+	cout << "\n  " << "  $$ |  $$ $$  __$$ $$ | $$ | $$ $$   ____|      $$ |  $$ |\\$$$  / $$   ____$$ |      ";
+	cout << "\n  " << "  \\$$$$$$$ \\$$$$$$$ $$ | $$ | $$ \\$$$$$$$\\       \\$$$$$$  | \\$  /  \\$$$$$$$\\$$ |      ";
+	cout << "\n  " << "   \\____$$ |\\_______\\__| \\__| \\__|\\_______|       \\______/   \\_/    \\_______\\__|      ";
+	cout << "\n  " << "  $$\\   $$ |                                                                          ";
+	cout << "\n  " << "  \\$$$$$$  |                                                                          ";
+	cout << "\n  " << "   \\______/                                                                           ";
+
+	cout << "\n\n Your final score was: " << score;
+}
+
+//printhold
+void printhold(int holded) {
+	int block[4][2];
+	int nextstack[6][4];
+
+	//clear the nextstack
+	clearnextstack(nextstack);
+
+	//select the correct block
+	switch (holded)
+	{
+		// T block #1
+	case 1:
+		block[0][0] = 2;
+		block[0][1] = 1;
+
+		block[1][0] = 1;
+		block[1][1] = 2;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// I block #2
+	case 2:
+		block[0][0] = 1;
+		block[0][1] = 2;
+
+		block[1][0] = 2;
+		block[1][1] = 2;
+
+		block[2][0] = 3;
+		block[2][1] = 2;
+
+		block[3][0] = 4;
+		block[3][1] = 2;
+		break;
+
+		// O block #3
+	case 3:
+		block[0][0] = 2;
+		block[0][1] = 1;
+
+		block[1][0] = 3;
+		block[1][1] = 1;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// J block #4
+	case 4:
+		block[0][0] = 1;
+		block[0][1] = 1;
+
+		block[1][0] = 1;
+		block[1][1] = 2;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// L block #5
+	case 5:
+		block[0][0] = 3;
+		block[0][1] = 1;
+
+		block[1][0] = 1;
+		block[1][1] = 2;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// Z block #6
+	case 6:
+		block[0][0] = 1;
+		block[0][1] = 1;
+
+		block[1][0] = 2;
+		block[1][1] = 1;
+
+		block[2][0] = 2;
+		block[2][1] = 2;
+
+		block[3][0] = 3;
+		block[3][1] = 2;
+		break;
+
+		// S block #7
+	case 7:
+		block[0][0] = 2;
+		block[0][1] = 1;
+
+		block[1][0] = 3;
+		block[1][1] = 1;
+
+		block[2][0] = 1;
+		block[2][1] = 2;
+
+		block[3][0] = 2;
+		block[3][1] = 2;
+		break;
+	}	  //kijk welke block
+
+	//set block in nextstack
+	for (int i = 0; i < 4; i++) {
+		nextstack[block[i][0]][block[i][1]] = 1;		//add new block to given position
+	}
+
+	//print the nextstack
+	gotoxy(18, 10);
+	cout << "______";
+
+	for (int j = 0; j < 3; j++) {
+		gotoxy(17, 11 + j);
+		cout << "|";
+		for (int i = 0; i < 6; i++) {
+			if (nextstack[i][j] == 1)
+			{
+				cout << (char)254u;
+			}
+			else
+			{
+				cout << " ";
+			}
+		}
+		cout << "|";
+	}
+	gotoxy(17, 14);
+	cout << "|______|";
+}
+
+
+//main funtion
+int main() {
+
+	int stack[10][20];			//playfield matrix
+	int	 block[4][2];			//position of the current block 
+	int holo[4][2];			//position of the holo
+	bool end, add, add2, stop, stoph, start, secp, drop, holdblocker;		//patamere for actions
+	int c = 0, r, currentblock, nextblock, roto, t, t2, gameover, gamecount, gametime, score, holded, holdednext, blockcount;
+	int cube[4][2], line[20], nextcube[4][2];
+	int pr , pg, pr2, pg2 = 0, fps;
+	int gamemode = 0, selector = 0, terminate = 0;
+
+
+	ShowConsoleCursor(false);
+	system("CLS");				//clear scherm
+	clearstack(stack);
+	clearblock(block);
+	clearline(line);
+
+	while (terminate == 0) {
+
+		
+		gamemode = 0;
+		
+
+		//print menu
+		printmenu(selector);
+		//lees char
+		c = readchar(); 
+		//update selector
+		selector = editselector(c, selector, 2);
+		//continue checker on space(7)
+		if (c == 7) {
+			gamemode = selector+1;
+			selector = 0;
+
+			end = 1, add = 1, add2 = 0, stop = 0, stoph = 0, start = 1, secp = 0, drop = 0, holdblocker = 0;
+			c = 0, r = 0, currentblock = 0, nextblock = 0, roto = 0, t, t2, gameover = 0, gamecount = 0, gametime = 0, score = 0, holded = 0, holdednext = 0, blockcount = 0;
+			pr = 0, pg = 0, pr2 = 0, pg2 = 0, fps = 0;
+			clearstack(stack);
+			clearblock(block);
+			clearline(line);
+		}
+
+
+
+		//select gamemode
+		switch (gamemode)
+		{
+		case 1: //single player
+
+			if (true) {
+
+				system("CLS");				//clear scherm
+
+				//set start block
+				unsigned __int64 now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+				srand(now + 1);
+				nextblock = rand() % 7 + 1;
+
+				while (end == 1) {
+
+					stop = 0;
+					add2 = 0;
+
+					drop = secp;
+					secp = false;
+
+					//comple line detection
+					clearline(line);
+					if (add == 1) {
+						for (int i = 0; i < 20; i++) {
+
+							for (int p = 0; p < 10; p++) {			//count blocks per line
+								if (stack[p][i] == 1) {
+									line[i]++;
+								}
+							}
+							if (line[i] == 10) {					//see if there is a full line
+								for (int p = 0; p < 10; p++) {		//clear the full line
+									stack[p][i] = 0;
+								}
+								for (int q = i; q > 0; q--) {		//cycle all lines above
+									for (int p = 0; p < 10; p++) {
+										stack[p][q] = stack[p][q - 1]; //move line down
+									}
+								}
+								score++;
+							}
+						}
+					}
+
+					//add block
+					if (add == 1)
+					{
+						if (c == 8 && holdednext != 0) {
+							currentblock = holdednext;
+						}
+						else {
+							currentblock = nextblock;
+							holdblocker = 0;
+						}
+						//diffrent blocks
+						switch (currentblock)
+						{
+							// T block #1
+						case 1:
+							block[0][0] = 4;
+							block[0][1] = 1;
+
+							block[1][0] = 3;
+							block[1][1] = 2;
+
+							block[2][0] = 4;
+							block[2][1] = 2;
+
+							block[3][0] = 5;
+							block[3][1] = 2;
+							break;
+
+							// I block #2
+						case 2:
+							block[0][0] = 3;
+							block[0][1] = 1;
+
+							block[1][0] = 4;
+							block[1][1] = 1;
+
+							block[2][0] = 5;
+							block[2][1] = 1;
+
+							block[3][0] = 6;
+							block[3][1] = 1;
+							break;
+
+							// O block #3
+						case 3:
+							block[0][0] = 4;
+							block[0][1] = 1;
+
+							block[1][0] = 5;
+							block[1][1] = 1;
+
+							block[2][0] = 4;
+							block[2][1] = 2;
+
+							block[3][0] = 5;
+							block[3][1] = 2;
+							break;
+
+							// J block #4
+						case 4:
+							block[0][0] = 3;
+							block[0][1] = 1;
+
+							block[1][0] = 3;
+							block[1][1] = 2;
+
+							block[2][0] = 4;
+							block[2][1] = 2;
+
+							block[3][0] = 5;
+							block[3][1] = 2;
+							break;
+
+							// L block #5
+						case 5:
+							block[0][0] = 5;
+							block[0][1] = 1;
+
+							block[1][0] = 3;
+							block[1][1] = 2;
+
+							block[2][0] = 4;
+							block[2][1] = 2;
+
+							block[3][0] = 5;
+							block[3][1] = 2;
+							break;
+
+							// Z block #6
+						case 6:
+							block[0][0] = 4;
+							block[0][1] = 1;
+
+							block[1][0] = 3;
+							block[1][1] = 1;
+
+							block[2][0] = 4;
+							block[2][1] = 2;
+
+							block[3][0] = 5;
+							block[3][1] = 2;
+							break;
+
+							// S block #7
+						case 7:
+							block[0][0] = 5;
+							block[0][1] = 1;
+
+							block[1][0] = 4;
+							block[1][1] = 1;
+
+							block[2][0] = 4;
+							block[2][1] = 2;
+
+							block[3][0] = 3;
+							block[3][1] = 2;
+							break;
+						}
+
+
+						roto = 1;
+						add = 0;
+						if (c != 8) {
+							add2 = 1;
+						}
+					}
+
+					//decide next block
+					if (add2 == 1) {
+						//randomise diffrent blocks
+						unsigned __int64 now = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now().time_since_epoch()).count();
+						srand(now);
+						nextblock = rand() % 7 + 1;
+					}
+
+					//print next block
+					printnext(nextblock);
+
+					//print hold block
+					printhold(holded);
+
+					//game over detection
+					if (add2 == 1) {
+						for (int i = 0; i < 4; i++) {
+							if (stack[block[i][0]][block[i][1]] == 1) {
+								gameover = 1;
+							}
+						}
+					}
+
+					//auto drop en imput
+					if (true) {
+						if (drop == true) {
+							c = 4;
+						}
+						else {
+							c = readchar(); //1=left 2=right 3=up 4=down 5=q 6=e 7=space 8=x 0=default
+						}
+					}
+
+
+					//remove current block from stack
+					for (int i = 0; i < 4; i++)
+					{
+						stack[block[i][0]][block[i][1]] = 0;		//remove from current position
+					}
+
+
+					//moven van block
+					for (int i = 0; i < 4; i++)
+					{
+						switch (c) {
+
+						case 1: // move blok to left
+							block[i][0] = block[i][0] - 1;				//set new possition
+
+							break;
+
+						case 2: // move block to right
+							block[i][0] = block[i][0] + 1;				//set new possition
+
+							break;
+
+							//case 3: // move block up
+							//	block[i][1] = block[i][1] - 1;				//set new possition
+							//	break;
+
+						case 4: // move block down
+							block[i][1] = block[i][1] + 1;				//set new possition
+
+							break;
+						}
+					}
+					//rotation van block
+					if (c == 3) //right
+					{
+						switch (currentblock) {
+						case 1: //#T
+							switch (roto)
+							{
+							case 1:
+								roto = 2;		//adjust rotation with coresponding block position
+
+								block[1][0] = block[1][0] + 1;
+								block[1][1] = block[1][1] + 1;
+								break;
+
+							case 2:
+								roto = 3;
+
+								block[0][0] = block[0][0] - 1;
+								block[0][1] = block[0][1] + 1;
+								break;
+
+							case 3:
+								roto = 4;
+
+								block[0][0] = block[0][0] + 1;
+								block[0][1] = block[0][1] - 1;
+
+								block[1][0] = block[1][0] - 1;
+								block[1][1] = block[1][1] - 1;
+
+								block[3][0] = block[3][0] - 1;
+								block[3][1] = block[3][1] + 1;
+								break;
+
+							case 4:
+								roto = 1;
+
+								block[3][0] = block[3][0] + 1;
+								block[3][1] = block[3][1] - 1;
+								break;
+							}
+							break;
+
+						case 2: //#I
+							switch (roto)
+							{
+							case 1:
+								roto = 2;
+
+								block[0][0] = block[0][0] + 2;
+								block[0][1] = block[0][1] + 2;
+
+								block[1][0] = block[1][0] + 1;
+								block[1][1] = block[1][1] + 1;
+
+								block[3][0] = block[3][0] - 1;
+								block[3][1] = block[3][1] - 1;
+								break;
+
+							case 2:
+								roto = 3;
+
+								block[0][0] = block[0][0] + 1;
+								block[0][1] = block[0][1] - 1;
+
+								block[2][0] = block[2][0] - 1;
+								block[2][1] = block[2][1] + 1;
+
+								block[3][0] = block[3][0] - 2;
+								block[3][1] = block[3][1] + 2;
+								break;
+
+							case 3:
+								roto = 4;
+
+								block[0][0] = block[0][0] - 2;
+								block[0][1] = block[0][1] - 2;
+
+								block[1][0] = block[1][0] - 1;
+								block[1][1] = block[1][1] - 1;
+
+								block[3][0] = block[3][0] + 1;
+								block[3][1] = block[3][1] + 1;
+								break;
+
+							case 4:
+								roto = 1;
+
+								block[0][0] = block[0][0] - 1;
+								block[0][1] = block[0][1] + 1;
+
+								block[2][0] = block[2][0] + 1;
+								block[2][1] = block[2][1] - 1;
+
+								block[3][0] = block[3][0] + 2;
+								block[3][1] = block[3][1] - 2;
+								break;
+							}
+							break;
+
+						case 3: //#O
+							break;
+
+						case 4: //#J
+							switch (roto)
+							{
+							case 1:
+								roto = 2;
+
+								block[0][0] = block[0][0] + 2;
+								block[0][1] = block[0][1] + 0;
+
+								block[1][0] = block[1][0] + 1;
+								block[1][1] = block[1][1] - 1;
+
+								block[3][0] = block[3][0] - 1;
+								block[3][1] = block[3][1] + 1;
+								break;
+
+							case 2:
+								roto = 3;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] + 2;
+
+								block[1][0] = block[1][0] + 1;
+								block[1][1] = block[1][1] + 1;
+
+								block[3][0] = block[3][0] - 1;
+								block[3][1] = block[3][1] - 1;
+								break;
+
+							case 3:
+								roto = 4;
+
+								block[0][0] = block[0][0] - 2;
+								block[0][1] = block[0][1] + 0;
+
+								block[1][0] = block[1][0] - 1;
+								block[1][1] = block[1][1] + 1;
+
+								block[3][0] = block[3][0] + 1;
+								block[3][1] = block[3][1] - 1;
+								break;
+
+							case 4:
+								roto = 1;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] - 2;
+
+								block[1][0] = block[1][0] - 1;
+								block[1][1] = block[1][1] - 1;
+
+								block[3][0] = block[3][0] + 1;
+								block[3][1] = block[3][1] + 1;
+								break;
+							}
+							break;
+
+						case 5: //#L
+							switch (roto)
+							{
+							case 1:
+								roto = 2;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] + 2;
+
+								block[1][0] = block[1][0] + 1;
+								block[1][1] = block[1][1] - 1;
+
+								block[3][0] = block[3][0] - 1;
+								block[3][1] = block[3][1] + 1;
+								break;
+
+							case 2:
+								roto = 3;
+
+								block[0][0] = block[0][0] - 2;
+								block[0][1] = block[0][1] + 0;
+
+								block[1][0] = block[1][0] + 1;
+								block[1][1] = block[1][1] + 1;
+
+								block[3][0] = block[3][0] - 1;
+								block[3][1] = block[3][1] - 1;
+								break;
+
+							case 3:
+								roto = 4;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] - 2;
+
+								block[1][0] = block[1][0] - 1;
+								block[1][1] = block[1][1] + 1;
+
+								block[3][0] = block[3][0] + 1;
+								block[3][1] = block[3][1] - 1;
+								break;
+
+							case 4:
+								roto = 1;
+
+								block[0][0] = block[0][0] + 2;
+								block[0][1] = block[0][1] + 0;
+
+								block[1][0] = block[1][0] - 1;
+								block[1][1] = block[1][1] - 1;
+
+								block[3][0] = block[3][0] + 1;
+								block[3][1] = block[3][1] + 1;
+								break;
+							}
+							break;
+
+						case 6: //#Z
+							switch (roto)
+							{
+							case 1:
+								roto = 2;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] + 2;
+
+								block[1][0] = block[1][0] + 2;
+								block[1][1] = block[1][1] + 0;
+								break;
+
+							case 2:
+								roto = 1;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] - 2;
+
+								block[1][0] = block[1][0] - 2;
+								block[1][1] = block[1][1] + 0;
+								break;
+							}
+							break;
+
+						case 7: //#S
+							switch (roto)
+							{
+							case 1:
+								roto = 2;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] + 1;
+
+								block[3][0] = block[3][0] + 2;
+								block[3][1] = block[3][1] + 1;
+								break;
+
+							case 2:
+								roto = 1;
+
+								block[0][0] = block[0][0] + 0;
+								block[0][1] = block[0][1] - 1;
+
+								block[3][0] = block[3][0] - 2;
+								block[3][1] = block[3][1] - 1;
+								break;
+							}
+							break;
+
+						}
+					}
+
+
+					//collision detection
+					for (int i = 0; i < 4; i++)
+					{
+						if (block[i][0] > 9 || block[i][0] < 0 || block[i][1] > 19 || block[i][1] < 0 || stack[block[i][0]][block[i][1]] == 1)		//sidewall detection || filled block detection
+						{
+							stop = 1;
+						}
+					}
+
+
+					//setblock
+					for (int i = 0; i < 4; i++) {
+						if (block[i][1] > 19) {
+							add = 1;
+						}
+					}
+					if (c == 4) {
+						for (int i = 0; i < 4; i++) {
+							if (stack[block[i][0]][block[i][1]] == 1) {
+								add = 1;
+							}
+						}
+					}
+
+
+					//reverse move if a block collision detects (direction)
+					if (stop == 1) {
+						for (int i = 0; i < 4; i++)
+						{
+							switch (c)
+							{
+							case 1:
+								block[i][0] = block[i][0] + 1;
+								break;
+
+							case 2:
+								block[i][0] = block[i][0] - 1;
+								break;
+
+								//case 3:
+									//block[i][1] = block[i][1] + 1;
+									//break;
+
+							case 4:
+								block[i][1] = block[i][1] - 1;
+								break;
+							}
+						}
+					}
+					//(rotation)
+					if (stop == 1)
+					{
+						if (c == 3)
+						{
+							switch (currentblock) {
+							case 1: //#T
+								switch (roto)
+								{
+								case 2:
+									roto = 1;		//adjust rotation with coresponding block position
+
+									block[1][0] = block[1][0] - 1;
+									block[1][1] = block[1][1] - 1;
+									break;
+
+								case 3:
+									roto = 2;
+
+									block[0][0] = block[0][0] + 1;
+									block[0][1] = block[0][1] - 1;
+									break;
+
+								case 4:
+									roto = 3;
+
+									block[0][0] = block[0][0] - 1;
+									block[0][1] = block[0][1] + 1;
+
+									block[1][0] = block[1][0] + 1;
+									block[1][1] = block[1][1] + 1;
+
+									block[3][0] = block[3][0] + 1;
+									block[3][1] = block[3][1] - 1;
+									break;
+
+								case 1:
+									roto = 4;
+
+									block[3][0] = block[3][0] - 1;
+									block[3][1] = block[3][1] + 1;
+									break;
+								}
+								break;
+
+							case 2: //#I
+								switch (roto)
+								{
+								case 2:
+									roto = 1;
+
+									block[0][0] = block[0][0] - 2;
+									block[0][1] = block[0][1] - 2;
+
+									block[1][0] = block[1][0] - 1;
+									block[1][1] = block[1][1] - 1;
+
+									block[3][0] = block[3][0] + 1;
+									block[3][1] = block[3][1] + 1;
+									break;
+
+								case 3:
+									roto = 2;
+
+									block[0][0] = block[0][0] - 1;
+									block[0][1] = block[0][1] + 1;
+
+									block[2][0] = block[2][0] + 1;
+									block[2][1] = block[2][1] - 1;
+
+									block[3][0] = block[3][0] + 2;
+									block[3][1] = block[3][1] - 2;
+									break;
+
+								case 4:
+									roto = 3;
+
+									block[0][0] = block[0][0] + 2;
+									block[0][1] = block[0][1] + 2;
+
+									block[1][0] = block[1][0] + 1;
+									block[1][1] = block[1][1] + 1;
+
+									block[3][0] = block[3][0] - 1;
+									block[3][1] = block[3][1] - 1;
+									break;
+
+								case 1:
+									roto = 4;
+
+									block[0][0] = block[0][0] + 1;
+									block[0][1] = block[0][1] - 1;
+
+									block[2][0] = block[2][0] - 1;
+									block[2][1] = block[2][1] + 1;
+
+									block[3][0] = block[3][0] - 2;
+									block[3][1] = block[3][1] + 2;
+									break;
+								}
+								break;
+
+							case 3: //#O
+								break;
+
+							case 4: //#J
+								switch (roto)
+								{
+								case 2:
+									roto = 1;
+
+									block[0][0] = block[0][0] - 2;
+									block[0][1] = block[0][1] - 0;
+
+									block[1][0] = block[1][0] - 1;
+									block[1][1] = block[1][1] + 1;
+
+									block[3][0] = block[3][0] + 1;
+									block[3][1] = block[3][1] - 1;
+									break;
+
+								case 3:
+									roto = 2;
+
+									block[0][0] = block[0][0] - 0;
+									block[0][1] = block[0][1] - 2;
+
+									block[1][0] = block[1][0] - 1;
+									block[1][1] = block[1][1] - 1;
+
+									block[3][0] = block[3][0] + 1;
+									block[3][1] = block[3][1] + 1;
+									break;
+
+								case 4:
+									roto = 3;
+
+									block[0][0] = block[0][0] + 2;
+									block[0][1] = block[0][1] - 0;
+
+									block[1][0] = block[1][0] + 1;
+									block[1][1] = block[1][1] - 1;
+
+									block[3][0] = block[3][0] - 1;
+									block[3][1] = block[3][1] + 1;
+									break;
+
+								case 1:
+									roto = 4;
+
+									block[0][0] = block[0][0] - 0;
+									block[0][1] = block[0][1] + 2;
+
+									block[1][0] = block[1][0] + 1;
+									block[1][1] = block[1][1] + 1;
+
+									block[3][0] = block[3][0] - 1;
+									block[3][1] = block[3][1] - 1;
+									break;
+								}
+								break;
+
+							case 5: //#L
+								switch (roto)
+								{
+								case 2:
+									roto = 1;
+
+									block[0][0] = block[0][0] - 0;
+									block[0][1] = block[0][1] - 2;
+
+									block[1][0] = block[1][0] - 1;
+									block[1][1] = block[1][1] + 1;
+
+									block[3][0] = block[3][0] + 1;
+									block[3][1] = block[3][1] - 1;
+									break;
+
+								case 3:
+									roto = 2;
+
+									block[0][0] = block[0][0] + 2;
+									block[0][1] = block[0][1] - 0;
+
+									block[1][0] = block[1][0] - 1;
+									block[1][1] = block[1][1] - 1;
+
+									block[3][0] = block[3][0] + 1;
+									block[3][1] = block[3][1] + 1;
+									break;
+
+								case 4:
+									roto = 3;
+
+									block[0][0] = block[0][0] - 0;
+									block[0][1] = block[0][1] + 2;
+
+									block[1][0] = block[1][0] + 1;
+									block[1][1] = block[1][1] - 1;
+
+									block[3][0] = block[3][0] - 1;
+									block[3][1] = block[3][1] + 1;
+									break;
+
+								case 1:
+									roto = 4;
+
+									block[0][0] = block[0][0] - 2;
+									block[0][1] = block[0][1] - 0;
+
+									block[1][0] = block[1][0] + 1;
+									block[1][1] = block[1][1] + 1;
+
+									block[3][0] = block[3][0] - 1;
+									block[3][1] = block[3][1] - 1;
+									break;
+								}
+								break;
+
+							case 6: //#Z
+								switch (roto)
+								{
+								case 2:
+									roto = 1;
+
+									block[0][0] = block[0][0] + 0;
+									block[0][1] = block[0][1] - 2;
+
+									block[1][0] = block[1][0] - 2;
+									block[1][1] = block[1][1] + 0;
+									break;
+
+								case 1:
+									roto = 2;
+
+									block[0][0] = block[0][0] + 0;
+									block[0][1] = block[0][1] + 2;
+
+									block[1][0] = block[1][0] + 2;
+									block[1][1] = block[1][1] + 0;
+									break;
+								}
+								break;
+
+							case 7: //#S
+								switch (roto)
+								{
+								case 2:
+									roto = 1;
+
+									block[0][0] = block[0][0] + 0;
+									block[0][1] = block[0][1] - 1;
+
+									block[3][0] = block[3][0] - 2;
+									block[3][1] = block[3][1] - 1;
+									break;
+
+								case 1:
+									roto = 2;
+
+									block[0][0] = block[0][0] + 0;
+									block[0][1] = block[0][1] + 1;
+
+									block[3][0] = block[3][0] + 2;
+									block[3][1] = block[3][1] + 1;
+									break;
+								}
+								break;
+
+							}
+						}
+					}
+
+					//holo
+					if (true) {
+
+						//delete current holo in stack (accept first move - holo is not set yet)
+
+						if (start == false && add == false && add2 == false) {
+							for (int i = 0; i < 4; i++)
+							{
+								stack[holo[i][0]][holo[i][1]] = 0;		//remove from current position
+							}
+						}
+
+						//set holo position
+						for (int i = 0; i < 4; i++) {
+							holo[i][0] = block[i][0];
+							holo[i][1] = block[i][1];
+						}
+
+						stoph = 0;
+
+						while (stoph == 0) {
+							for (int i = 0; i < 4; i++)
+							{
+								if (holo[i][1] > 19 || holo[i][1] < 0 || stack[holo[i][0]][holo[i][1]] == 1)		//sidewall detection || filled block detection
+								{
+									stoph = 1;	//uit loop gaan
+								}
+							}
+							for (int i = 0; i < 4; i++)
+							{
+								holo[i][1] = holo[i][1] + 1; //reverse move
+							}
+						}
+
+						//reverse move 2x!!!
+						for (int i = 0; i < 4; i++)
+						{
+							holo[i][1] = holo[i][1] - 1; //reverse move
+						}
+						for (int i = 0; i < 4; i++)
+						{
+							holo[i][1] = holo[i][1] - 1; //reverse move
+						}
+
+						//set holo in stack			
+						for (int i = 0; i < 4; i++)
+						{
+							stack[holo[i][0]][holo[i][1]] = 2;		//add holo to stack
+						}
+
+					}
+
+					//harddrop
+					if (c == 7) {
+						for (int i = 0; i < 4; i++) { //make holo the active block
+							block[i][0] = holo[i][0];
+							block[i][1] = holo[i][1];
+						}
+						add = true; //end turn instandly instead of waiting 1 more turn
+					}
+
+					//set block in stack
+					for (int i = 0; i < 4; i++)
+					{
+						stack[block[i][0]][block[i][1]] = 1;		//add new block to given position
+					}
+
+
+					//print stack
+					if (gameover == 0) {
+						printstack(stack);
+					}
+					else {
+
+						if (gamecount == 0) {
+							system("CLS");
+							gamecount++;
+						}
+
+						gameoverf(score);
+						end = 0;
+					}
+
+					//hold block logic
+					if (c == 8 && holdblocker == 0) {
+						if (holded == 0) {
+							holded = currentblock;
+						}
+						else {
+							holdednext = holded;
+							holded = currentblock;
+						}
+
+						//remove current block from stack
+						for (int i = 0; i < 4; i++)
+						{
+							stack[block[i][0]][block[i][1]] = 0;		//remove from current position
+						}
+
+						//delete current holo in stack (accept first move - holo is not set yet)
+						if (start == false && add == false && add2 == false) {
+							for (int i = 0; i < 4; i++)
+							{
+								stack[holo[i][0]][holo[i][1]] = 0;		//remove from current position
+							}
+						}
+						add = 1;
+						holdblocker = 1;
+					}
+
+					//block counter
+					if (add == 1 && holdblocker == 0) {
+						blockcount++;
+					}
+
+					//information stuff
+					time_t t = time(0);
+
+					if (start == true) {
+						t2 = t;
+					}
+
+					gametime = t - t2;
+
+
+					//text
+					if (1) {
+						gotoxy(1, 26);
+						cout << "frame: " << r;
+						gotoxy(15, 26);
+						cout << "time:  " << gametime;
+
+						if (pg < gametime) {
+
+							pr2 = r - pr;
+							pg2 = gametime - pg;
+
+							fps = pr2 - pg2;
+
+							pr = r;
+							pg = gametime;
+
+							secp = 1;
+						}
+
+						gotoxy(29, 26);
+						cout << "FPS:   " << fps;
+						gotoxy(1, 27);
+						cout << "secp:  " << secp;
+						gotoxy(15, 27);
+						cout << "Key:   " << c;
+						gotoxy(29, 27);
+						cout << "score: " << score;
+					}
+
+
+					//alter variable
+					if (true) {
+						r++;
+						start = false;
+					}
+				}
+				gotoxy(1, 14);
+				system("pause");			//wait for imput
+				system("CLS");				//clear scherm
+			}
+
+			break;
+
+		case 3:
+
+			terminate = 1;
+
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	system("CLS");				//clear scherm
+	return 0;
+}
