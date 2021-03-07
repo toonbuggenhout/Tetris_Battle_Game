@@ -11,5 +11,5 @@ worden. De twee controllers voor de spelers zijn draadloos verbonden aan 
 de console waar de game op draait. 
 
 ### Schema
-![simpel_schema](https://github.com/toonbuggenhout/Tetsris_Battle_Game/blob/main/Opmaak/Schema/schema_projectvoorstel.PNG)
+![simpel_schema](https://github.com/toonbuggenhout/Tetris_Battle_Game/blob/main/Opmaak/Schema/schema_projectvoorstel.PNG)
 
