@@ -11,5 +11,5 @@ worden. De twee controllers voor de spelers zijn draadloos verbonden aan 
 de console waar de game op draait. 
 
 ### Schema
-![simpel_schema](/Opmaak/Schema/schema_projectvorstel.PNG)
+![simpel_schema](Tetsris_Battle_Game/Opmaak/Schema/schema_projectvoorstel.PNG)
 
